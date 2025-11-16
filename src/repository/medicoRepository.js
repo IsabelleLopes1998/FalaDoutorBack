@@ -73,7 +73,7 @@ const MedicoRepository ={
                 cpf = $2, 
                 crm = $3, 
                 data_nascimento = $4, 
-                planos_saude = $5
+                planos_saude = $5::plano_saude[]
             WHERE id = $6
             RETURNING id, nome_completo, cpf, crm, data_nascimento, planos_saude`,
             [nomeCompleto, cpf, crm, dataNascimento, planosSaude, id]
