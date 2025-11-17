@@ -5,7 +5,8 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 const medicoRoutes = require('./routes/medicoRoutes');
-const planoSaudeRouter = require('./routes/planoSaudeRoutes');
+const planoSaudeRoutes = require('./routes/planoSaudeRoutes');
+const pacienteRoutes = require('./routes/pacienteRoutes')
 
 const app = express();
 
@@ -20,7 +21,8 @@ app.get('/', (req, res) => {
 
 
 app.use('/medicos', medicoRoutes);
-app.use('/planos-saude', planoSaudeRouter);
+app.use('/planos-saude', planoSaudeRoutes);
+app.use('/pacientes', pacienteRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

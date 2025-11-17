@@ -1,4 +1,3 @@
-const Medico = require('../model/medicoModel');
 const MedicoService = require('../services/medicoService');
 
 const MedicoController = {
@@ -20,7 +19,7 @@ const MedicoController = {
     },
 
     async criar (req, res){
-        const {nomeCompleto, cpf, crm,dataNascimento, planosSaude} = req.body;
+        const {nomeCompleto, cpf, crm, dataNascimento, planosSaude} = req.body;
 
         const novoMedico = await MedicoService.criar({
             nomeCompleto,

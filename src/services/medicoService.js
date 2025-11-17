@@ -15,7 +15,7 @@ const MedicoService = {
     },
 
     async atualizar(id,dados){
-        return MedicoRepository.update(id,dados);
+        return MedicoRepository.update(id, dados);
     },
 
     async remover(id){
