@@ -19,13 +19,13 @@ const PacienteController = {
     },
 
     async criar (req, res){
-        const {nomeCompleto, cpf, dataNascimento, planoSaude} = req.body;
+        const {nomeCompleto, cpf, dataNascimento, planoSaudeId} = req.body;
 
         const novoPaciente = await PacienteService.criar({
             nomeCompleto,
             cpf,
             dataNascimento,
-            planoSaude
+            planoSaudeId
         });
 
         return res.status(201).json(novoPaciente);
@@ -33,13 +33,13 @@ const PacienteController = {
 
     async atualizar (req, res){
         const {id} = req.params;
-        const {nomeCompleto, cpf, dataNascimento, planoSaude} = req.body;
+        const {nomeCompleto, cpf, dataNascimento, planoSaudeId} = req.body;
 
         const pacienteAtualizado = await PacienteService.atualizar(id, {
             nomeCompleto,
             cpf,
             dataNascimento,
-            planoSaude
+            planoSaudeId
         });
 
         if(!pacienteAtualizado){

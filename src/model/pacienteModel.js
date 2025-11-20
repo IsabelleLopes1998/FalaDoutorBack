@@ -9,7 +9,7 @@ class Paciente{
         this.nomeCompleto = nomeCompleto,
         this.cpf = cpf,
         this.dataNascimento = dataNascimento,
-        this.planoSaude = planoSaude
+        this.planoSaude= planoSaude
     }
 }
 

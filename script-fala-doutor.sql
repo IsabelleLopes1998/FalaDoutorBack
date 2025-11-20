@@ -6,7 +6,6 @@ END IF;
 END
 $$;
 
-
 DROP TABLE IF EXISTS medicos;
 
 CREATE TABLE medicos (
@@ -15,6 +14,7 @@ CREATE TABLE medicos (
     cpf char(11) NOT NULL UNIQUE,
     crm VARCHAR(20) NOT NULL UNIQUE,
     data_nascimento DATE NOT NULL,
+    
     planos_saude plano_saude[] NOT NULL
 )
 
@@ -36,6 +36,14 @@ VALUES (
     '{"UNIMED", "BRADESCO"}'
 );
 
+INSERT INTO pacientes (nome_completo, cpf, data_nascimento, plano_saude)
+VALUES (
+    'Maria Julia',
+    '25603366512',
+    '1993-02-15',
+    'UNIMED'
+);
+
 UPDATE medicos
 SET 
     nome_completo = 'Dra Isabelle Bernardina da Silva Lopes',
@@ -44,3 +52,30 @@ SET
     data_nascimento = '1998-05-17',
     planos_saude = '{"UNIMED", "BRADESCO"}'
 WHERE id = 17;
+
+UPDATE pacientes
+SET 
+    nome_completo = 'Dr. Ranniery',
+    cpf = '04722173303',
+    data_nascimento = '1993-02-15',
+    plano_saude ='UNIMED'
+WHERE id = 6;
+
+
+SELECT  * FROM medicos;
+SELECT  * FROM pacientes;
+SELECT  * FROM pacientes where id = 4;
+SELECT
+    id,
+    nome_completo,
+    planos_saude
+FROM medicos
+WHERE planos_saude @> '{"UNIMED"}';
+
+
+DELETE FROM medicos
+WHERE id = 23;
+
+delete from pacientes where id=7;
+
+

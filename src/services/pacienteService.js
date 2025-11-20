@@ -2,23 +2,23 @@ const PacienteRepository = require('../repository/pacienteRepository');
 
 const PacienteService = {
 
-    async listarTodos(){
+    async listarTodos() {
         return PacienteRepository.findAll()
     },
 
-    async buscarPorId(id){
+    async buscarPorId(id) {
         return PacienteRepository.findById(id);
     },
 
-    async criar(dados){
+    async criar(dados) {
         return PacienteRepository.create(dados);
     },
 
-    async atualizar(id, dados){
+    async atualizar(id, dados) {
         return PacienteRepository.update(id, dados);
     },
 
-    async remover(id){
+    async remover(id) {
         return PacienteRepository.delete(id);
     },
 }

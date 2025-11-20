@@ -1,43 +1,52 @@
 const db = require('../config/database');
 const Medico = require('../model/medicoModel');
+const MedicoPlanoSaudeRepository = require('./medicoPlanoSaudeRepository');
 
 const MedicoRepository ={
 
     async findAll(){
         const result = await db.query(
-            'SELECT id, nome_completo, cpf, crm, data_nascimento, planos_saude FROM medicos'
+            'SELECT id, nome_completo, cpf, crm, data_nascimento FROM medicos'
         );
 
-        return result.rows.map(
-            (row) =>
-                new Medico({
-                    id: row.id,
-                    nomeCompleto: row.nome_completo,
-                    cpf: row.cpf,
-                    crm: row.crm,
-                    dataNascimento: row.data_nascimento,
-                    planosSaude: row.planos_saude
-                })
-        );
+        const medicos = result.rows.map(
+            row => new Medico({
+                id: row.id,
+                nomeCompleto: row.nome_completo,
+                cpf: row.cpf,
+                crm: row.crm,
+                dataNascimento: row.data_nascimento,
+                planosSaude: []
+            })
+        )
+        await Promise.all(
+            medicos.map( async (medico) => {
+                medico.planosSaude = await MedicoPlanoSaudeRepository.findPlanosByMedicoId(medico.id);
+                
+            })
+        )
+        return medicos;
     },
 
     async findById(id) {
         const result = await db.query(
-            `SELECT id, nome_completo, cpf, crm, data_nascimento, planos_saude FROM medicos WHERE id = $1`,
+            `SELECT id, nome_completo, cpf, crm, data_nascimento FROM medicos WHERE id = $1`,
             [id]
         )
 
         const row = result.rows[0];
         if(!row) return null;
 
-        return new Medico({
+        const medico = new Medico({
             id: row.id,
             nomeCompleto: row.nome_completo,
             cpf: row.cpf,
             crm: row.crm,
             dataNascimento: row.data_nascimento,
-            planosSaude: row.planos_saude
+            planosSaude: []
         });
+        medico.planosSaude = await MedicoPlanoSaudeRepository.findPlanosByMedicoId(medico.id);
+        return medico;
     },
 
     async create({
@@ -45,60 +54,110 @@ const MedicoRepository ={
         cpf,
         crm,
         dataNascimento,
-        planosSaude
+        planosSaude = []
     }){
-        const result = await db.query(
-            `INSERT INTO medicos (nome_completo, cpf, crm, data_nascimento, planos_saude)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, nome_completo, cpf, crm, data_nascimento, planos_saude`,
-           [nomeCompleto, cpf, crm, dataNascimento, planosSaude] 
-        );
+        const client = await db.connect();
+        try{
+            await client.query('BEGIN');
 
-        const row = result.rows[0];
-        return new Medico({
-            id: row.id,
-            nomeCompleto: row.nome_completo,
-            cpf: row.cpf,
-            crm: row.crm,
-            dataNascimento: row.data_nascimento,
-            planosSaude: row.planos_saude
-        });
+            const result = await client.query(
+                `INSERT INTO medicos (nome_completo, cpf, crm, data_nascimento)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id, nome_completo, cpf, crm, data_nascimento`,
+               [nomeCompleto, cpf, crm, dataNascimento] 
+            );
+    
+            const row = result.rows[0];
+            const medicoId = row.id;
+
+            const medico = new Medico({
+                id: row.id,
+                nomeCompleto: row.nome_completo,
+                cpf: row.cpf,
+                crm: row.crm,
+                dataNascimento: row.data_nascimento,
+                planosSaude: []
+            });
+
+            await MedicoPlanoSaudeRepository.replaceMedicoPlanos(client, medicoId, planosSaude);
+            medico.planosSaude = await MedicoPlanoSaudeRepository.findPlanosByMedicoId(medicoId, client);
+
+            await client.query('COMMIT');
+            return medico;
+
+        }catch(error){
+            await client.query('ROLLBACK');
+            throw error;
+        }finally{
+            client.release();
+        }
+    
     },
 
-    async update(id, {nomeCompleto, cpf, crm, dataNascimento, planosSaude}){
+    async update(id, {nomeCompleto, cpf, crm, dataNascimento, planosSaude =[]}){
+        const client = await db.connect();
 
-        const result = await db.query(
-            `UPDATE medicos SET 
-                nome_completo = $1, 
-                cpf = $2, 
-                crm = $3, 
-                data_nascimento = $4, 
-                planos_saude = $5::plano_saude[]
-            WHERE id = $6
-            RETURNING id, nome_completo, cpf, crm, data_nascimento, planos_saude`,
-            [nomeCompleto, cpf, crm, dataNascimento, planosSaude, id]
-        );
+        try{
+            await client.query('BEGIN');
 
-        const row = result.rows[0];
-        if(!row) return null;
+            const result = await client.query(
+                `UPDATE medicos SET 
+                   nome_completo = $1, 
+                   cpf = $2, 
+                   crm = $3, 
+                   data_nascimento = $4
+                 WHERE id = $5
+                 RETURNING id, nome_completo, cpf, crm, data_nascimento`,
+                [nomeCompleto, cpf, crm, dataNascimento, id]
+              );
+              const row = result.rows[0];
+              if(!row){
+                await client.query('ROLLBACK');
+                return null;
+              }
 
-        return new Medico({
-            id: row.id,
-            nomeCompleto: row.nome_completo,
-            cpf: row.cpf,
-            crm: row.crm,
-            dataNascimento: row.data_nascimento,
-            planosSaude: row.planos_saude
-        });
+              const medico = new Medico({
+                id: row.id,
+                nomeCompleto: row.nome_completo,
+                cpf: row.cpf,
+                crm: row.crm,
+                dataNascimento: row.data_nascimento,
+                planosSaude: []
+              });
+              await MedicoPlanoSaudeRepository.replaceMedicoPlanos(client, medico.id, planosSaude);
+              medico.planosSaude = await MedicoPlanoSaudeRepository.findPlanosByMedicoId(medico.id, client);
+
+              await client.query('COMMIT');
+              return medico;
+
+        }catch(error){
+            await client.query('ROLLBACK');
+            throw error;
+        }finally{
+            client.release();
+        }
     },
 
     async delete(id){
-        const result = await db.query(
-            'DELETE FROM medicos WHERE id = $1 RETURNING id',
-            [id]
-        );
-        return result.rowCount > 0;
-    },
+        const client = await db.connect();
+
+        try{
+            await client.query('BEGIN');
+            await client.query('DELETE FROM  medico_planos_saude WHERE medico_id = $1', [id]);
+
+            const result = await client.query('DELETE FROM medicos WHERE id = $1', [id]);
+
+            await client.query('COMMIT');
+            return result.rowCount > 0;
+
+        }catch(error){
+            await client.query('ROLLBACK');
+            throw error;
+        }finally{
+            client.release();
+        }
+    },  
+
 };
 
 module.exports = MedicoRepository;
