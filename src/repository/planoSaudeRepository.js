@@ -6,7 +6,7 @@ const PlanoSaudeRepository = {
 
     async findAll(){
         const result = await db.query(
-            'SELECT id, nome, valor FROM planos_saude'
+            'SELECT id, nome, valor FROM planos_saude ORDER BY nome',
         );
 
         return result.rows.map(

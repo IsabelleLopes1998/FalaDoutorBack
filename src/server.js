@@ -7,6 +7,7 @@ require('dotenv').config();
 const medicoRoutes = require('./routes/medicoRoutes');
 const planoSaudeRoutes = require('./routes/planoSaudeRoutes');
 const pacienteRoutes = require('./routes/pacienteRoutes')
+const consultaRoutes = require('./routes/consultaRoutes');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 app.use('/medicos', medicoRoutes);
 app.use('/planos-saude', planoSaudeRoutes);
 app.use('/pacientes', pacienteRoutes);
+app.use('/consultas', consultaRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

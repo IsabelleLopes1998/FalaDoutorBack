@@ -87,6 +87,23 @@ const PacienteRepository = {
         );
         return result.rowCount > 0;
     },
+    async findPlanoSaudeDoPaciente(id){
+        const result = await db.query(
+            `SELECT ps.id, ps.nome, ps.valor
+            FROM pacientes pc
+            LEFT JOIN planos_saude ps ON pc.plano_saude_id = ps.id
+            WHERE pc.id = $1`,
+            [id]
+        );
+        const row = result.rows[0];
+        if(!row || !row.id) return null;
+
+        return {
+            id: row.id,
+            nome: row.nome,
+            valor: row.valor
+        };
+    }
 };
 
 module.exports = PacienteRepository;
