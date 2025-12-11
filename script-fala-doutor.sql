@@ -170,7 +170,14 @@ ALTER TABLE pacientes
 
 select * from planos_saude;
 
-insert into planos_saude values(nome = "CLINICA SIM", valor = "85,00");
+CREATE TABLE consultas (
+    id          serial PRIMARY KEY,
+    data        date NOT NULL,
+    hora        time without time zone NOT NULL,
+    medico_id   integer NOT NULL REFERENCES medicos(id) ON DELETE RESTRICT,
+    paciente_id integer NOT NULL REFERENCES pacientes(id) ON DELETE RESTRICT,
+    valor       numeric(10,2) NOT NULL
+);
 
 
 

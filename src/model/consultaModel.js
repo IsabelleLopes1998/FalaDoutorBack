@@ -9,6 +9,7 @@ class Consulta {
         medicoNome,
         pacienteNome,
         planoSaudeNome,
+        status,
     }) {
         this.id = id;
         this.data = data;
@@ -19,6 +20,7 @@ class Consulta {
         this.medicoNome = medicoNome;
         this.pacienteNome = pacienteNome;
         this.planoSaudeNome = planoSaudeNome;
+        this.status = status;
     }
 }
 module.exports = Consulta;
